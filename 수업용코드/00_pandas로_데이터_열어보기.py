@@ -4,8 +4,9 @@
 # =====================================================================
 
 import os  # 파일 경로를 다루는 파이썬 기본 모듈
-import pandas as pd  # 표(엑셀 같은 것)를 다루는 라이브러리. 관례상 pd 라고 줄여 부릅니다
+
 import numpy as np  # 숫자 배열을 빠르게 계산하는 라이브러리. 관례상 np
+import pandas as pd  # 표(엑셀 같은 것)를 다루는 라이브러리. 관례상 pd 라고 줄여 부릅니다
 
 DATA = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", "수업용데이터"
