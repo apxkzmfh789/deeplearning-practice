@@ -677,184 +677,653 @@ print(df.isna())
 
 # 04_사이킷런_같은일을_한줄로
 
-특징이름 = ["공기온도", "회전수", "토크", "공구마모"]
+# 특징이름 = ["공기온도", "회전수", "토크", "공구마모"]
 
-이번 04챕터는 지금까지 01 02 03에서 했던 내용들을 사이킷런이라는
-모듈로 간단하게 진행하는 챕터이다.
+# 이번 04챕터는 지금까지 01 02 03에서 했던 내용들을 사이킷런이라는
+# 모듈로 간단하게 진행하는 챕터이다.
 
-해당 04 챕터에서 나오는 모든 메서드는 알 필요는 없다.
-어떤게 있는지 알고 있다면 import를 통해 끌어와 쓰기만 하면 된다.
+# 해당 04 챕터에서 나오는 모든 메서드는 알 필요는 없다.
+# 어떤게 있는지 알고 있다면 import를 통해 끌어와 쓰기만 하면 된다.
+
+# x = df["공기온도"].values
+# y = df["공정온도"].values
+# X1 = x.reshape(-1, 1)
+# print("[1] x.shape", x.shape, "→ X1.shape", X1.shape)
+
+# 내용 자체는 달라진 부분이 없다.
+# 지금까지 순수 파이썬으로 모델을 구현했다면 지금부터는 라이브러리를 통해
+# 모델을 구현하는 방법이다.
+
+# 먼저 여기서도 똑같이 열의 value값들을 가져오는데 여기서는 특이하게도
+# reshape를 통해 모양을 2차원 배열로 변환했다.
+
+# 따로 이유가 있는 건 아니고 사이킷런의 모델은 1차원을 받지 못하기 때문에
+# 2차원으로 변경한 것이다.
+# from sklearn.linear_model import LinearRegression
+# model = LinearRegression()  # ① 만들기 — 빈 선형회귀 모델. 아직 아무것도 모름
+# model.fit(X1, y)
+
+# 빈 선형회귀 모델인 LinearRegression를 만들어주고 .fit()으로 경사하강을 바로 진행한다
+# 그러면 X1과 y에 대한 w와 b가 바로 출력된다.
+
+# 또한 model.score(X1, y)를 통해 결정계수도 바로 구할 수 있다.
+
+# from sklearn.model_selection import train_test_split
+# from sklearn.preprocessing import StandardScaler
+
+# X = df[특징이름].values
+# X_train, X_test, y_train, y_test = train_test_split(
+#     X, y, test_size=0.3, random_state=42
+# )
+
+# 다음 내용은 02에서 진행했던 train과 test를 나누는 걸 한 번에 진행했다.
+# 위의 train_test_split()으로 학습과 시험을 7:3의 비율로 나누었고, 같은 결과를
+# 보장하기 위해 시드를 고정한 것이다.
+
+# scaler = StandardScaler()  # 표준화 도구
+# scaler.fit(X_train)  # 학습용의 평균·표준편차를 '외운다'  (02 의 mu, sd 계산)
+# Z_train = scaler.transform(X_train)  # 외운 값으로 변환  (02 의 (X − mu) / sd)
+# Z_test = scaler.transform(X_test)
+
+# StandardScaler는 표준화를 시켜주는 도구이다.
+# .fit() 을 통해 어떤 데이터에 대한 평균과 표준편차를 한 줄로 계산해주는 기능이며
+# .transform을 통해 값을 표준화 시켜준다.
+# 여기서 총 4줄로 02에서 진행했던 평균과 표준편차를 구하고 표준화를 시켜주는 코드를
+# 압축해냈다.
+
+# reg = LinearRegression().fit(Z_train, y_train) 
+
+# 여기서 다시 표준화한 데이터로 reg를 학습한다.
+
+# 04에서 2챕터와 1챕터의 차이는 표준화된 데이터를 넣었는지 안 넣었는지 뿐만 아니라
+# 챕터 1은 w가 1개이고 챕터 2는 w가 4개이다.
+
+# 그렇기 때문에 밑의 결과인 결정계수가 차이가 난다.
+
+# 실행결과
+# train R² 0.8155 / test R² 0.7425
+
+# # =====================================================================
+# # 3. Pipeline — "표준화는 학습용으로만" 을 도구가 대신 지키게
+# # =====================================================================
+
+# from sklearn.pipeline import make_pipeline
+
+# pipe = make_pipeline(
+#     StandardScaler(), LinearRegression()
+# )  # 왼쪽부터 순서대로: 표준화 → 선형회귀
+# pipe.fit(X_train, y_train) 
+
+# 3번째 챕터는 파이프 라인을 구축하는 것이다.
+# 사이킷런에서 make_pipeline을 불러와 표준화와 선형회귀를 담고 .fit(데이터)를 하면
+# 순서대로 표준화된 데이터를 선형회귀에 자동으로 넣어주게 된다.
+
+# 이 공정을 쓰면 위에서 했던 직접 평균과 표준편차를 학습시키는 등 약간의 번거로움이 있었는데
+# 코드를 압축해주고 사람이 할 수 있는 실수를 최대한 줄여준다는 장점이 있다.
+
+# 또한 .fit()을 한 번만 사용하기 때문에 코드의 가독성 또한 올라가는 장점이 있다.
+
+# pipe.predict([[300, 1500, 40, 100]])[0]
+
+# 이건 각 공기온도, 회전수, 토크, 공구마고가 저 값일 때의 공정온도를 예측하는 것이다.
+
+# 새 설비 [공기 300, 회전 1500, 토크 40, 마모 100] → 공정온도 310.03
+
+# 실행결과는 이렇게 나오며 지금 predict 뒤에 [0]을 붙였는데 이 이유로는
+# predict는 기본적으로 배열을 반환한다.
+# 지금은 행이 1개지만, 입력값으로 여러 개의 행을 넣으면 행만큼의 배열이 나오게 된다.
+# 만약 [0]을 쓰지 않는다면 round로 배열의 소숫점을 반올림하는 상황이 나오기 때문에 그것을
+# 방지하기 위해 [0]으로 하나의 값만 불러와 반올림 하는 것이다.
+
+
+# from sklearn.neighbors import KNeighborsRegressor
+
+# 이웃 = lambda: make_pipeline(StandardScaler(), KNeighborsRegressor(n_neighbors=1))
+
+# 위의 내용은 우선 지금까지 했던 선형회귀 모델이 아닌 knn 모델이다.
+# knn은 입력값이 들어오면 그 입력값과 가장 비슷한 입력값의 출력값을 뱉은 모델이다.
+
+# 그래서 지금은 데이터를 중복제거 하지않으면 어떻게 될까?를 중복과 가장 밀접한 관련이 있는
+# knn으로 보여주는 사례이고 현재 데이터는 중복이 없기 때문에 중복을 구태여 생성해서
+# 극단적인 예시를 보여주는 사례이다.
+
+# 이웃 = lambda: make_pipeline(StandardScaler(), KNeighborsRegressor(n_neighbors=1))
+
+# 이건 람다를 사용했는데 def로 사용해도 무방하다.
+# 재사용하기 위해 람다를 사용한 것이며 코드의 간결성을 위해서 적은 것이다.
+
+# X중복 = np.vstack([X, X])  # 일부러 모든 행을 두 번씩 (중복 제거를 깜빡한 상황)
+# y중복 = np.concatenate([y, y])
+
+# 지금 x와 y의 중복을 만들기 위해 사용한 메서드가 다른 것을 확인할 수 있다.
+# x의 경우 vstack을 사용했는데 이건 가로로 늘리는게 아닌 행을 추가하는 방식이다.
+# 그래서 총 (200,4)의 형식이 (400,4)가 되고
+# y의 경우 딱히 차원이 없는, 굳이 따지자면 1차원 배열이라 concatenate를 사용해 그냥 붙였다.
+
+
+# d_tr, d_te, dy_tr, dy_te = train_test_split(
+#     X중복, y중복, test_size=0.3, random_state=42
+# )
+
+# 중복으로 넣은 값을 위에서 했던 것처럼 train_test_split을 사용해 7대3으로 나눠주고
+# 시드를 똑같이 고정한다.
+
+# 이웃().fit(d_tr, dy_tr).score(d_te, dy_te)
+# 이웃().fit(X_train, y_train).score(X_test, y_test)
+
+#     중복 있음 test R² 0.8177   <- 훌륭해 보인다
+#     중복 없음 test R² 0.1864   <- 이게 이 모델의 진짜 실력
+
+# 그 상태에서 결과를 확인해보면 knn은 중복된 값이 있으면 훨씬 성능이 뻥튀기되었고
+# 중복이 없는 상태에서의 결정계수를 확인해보면 0.19 정도의 값이 나오는게 확인된다.
+
+# 이처럼 데이터에 중복이 얼마나 모델에 영향을 크게 미치는지 확인해봤다.
+
+# # =====================================================================
+# # 4. 분류 — 03 의 로지스틱 회귀를 도구로
+# # =====================================================================
+
+# 이번 챕터는 로지스틱 회귀를 사이킷런으로 구현한 것이다.
+
+# yc = df["고장여부"].values  # 분류 정답: 0/1
+# Xc_train, Xc_test, yc_train, yc_test = train_test_split(
+#     X, yc, test_size=0.3, random_state=3, stratify=yc
+# )
+
+# 이전 03을 정리할 때는 데이터를 나누기 위해 코드를 길게 적었지만,
+# 지금은 2줄로 한 번에 정리되었다.
+
+# 지금 코드를 간단히 보면 먼저 yc에 "고장여부"의 value를 넣는다.
+# 이것은 0과 1로 이루어져 있으며 1일경우 고장 0일경우 정상이다.
+
+# 그리고 위와 똑같이 train_test_split으로 데이터를 나누는데 7대3, 시드는 3으로 고정하고
+# stratify가 처음 나왔다.
+
+# stratify 이 파라미터는 데이터(yc)를 똑같은 비율로 나눠준다는 의미이다.
+
+# [4] 분류 — 학습용 고장 6 대 / 시험용 고장 2 대
+
+# 결과는 위처럼 학습용에는 6대, 시험용에는 2대가 들어갔다.
+
+
+# clf = make_pipeline(
+#     StandardScaler(), LogisticRegression(max_iter=1000)
+# )  # max_iter = 최대 걸음 수. 기본 100 이 모자라면 경고가 떠서 1000 으로
+# clf.fit(Xc_train, yc_train)  # 03 의 sigmoid + 로그손실 + 경사하강 2000 바퀴가 이 한 줄
+
+
+# 위의 내용은 clf에 로지스틱회귀 파이프라인을 만든 것이다.
+# max_iter는 는 최대 학습 횟수이다. 여기서 최대라는 것은 1000번 학습할 수 있지만,
+# 손실이 유의미하게 줄어들지 않는다면 1000번이 되기전에 중단할 수도 있기 때문에 max을 붙인 것이다.
+
+# 이제 다시 .fit()을 사용하여 train데이터를 넣고 학습한다.
+
+
+# p = clf.predict_proba(Xc_test)[:, 1]
+
+# 이제 clf에 train 데이터로 학습했으니 테스트 데이터로 결과를 확인해 볼 시간이다.
+# predict_proba 는 2차원 배열을 리턴하는데 이때 정답의 종류(개수)만큼 열이 생긴다.
+# 지금은 정답의 종류가 0 and 1 이므로 2개의 열이 생기고 0이 마찬가지로 정상일 확률
+# 1이 고장일 확률이다.
+
+# 그리고 [:,1]은 모든 행의 1번째 열을 가져오는 건데 p는 고장일 확률을 전부 가져온 것이다.
+
+# 판정 = clf.predict(Xc_test)
+
+# 이 코드는 결과값을 0과 1로 말해주고 임계값을 0.5를 기준으로 판단한다.
+# predict는 여기서 임계값을 따로 설정할 수 없으며 임계값을 설정하려면 proba를 사용해야 한다.
+# 자세한 방법은 밑에서 자세히 기술하겠다.
+
+# # =====================================================================
+# # 5. 채점 도구 — 03 에서 손으로 센 네 칸·재현율을 함수로
+# # =====================================================================
+
+# confusion_matrix(yc_test, 판정)  # 인자 순서: (실제, 판정). 바꾸면 표가 뒤집힙니다
+# tn, fp, fn, tp = confusion_matrix(yc_test, 판정).ravel()
+
+# confusion_matrix로 모델 평가를 한다.
+# 03에서 했던 것과 똑같지만 여기서는 import를 통해 confusion_matrix를 불러왔고
+# 순서가 조금 다른 것을 조심해야 한다.
+# .ravel()을 사용한 것은 그냥 1차원으로 만들려고 그런 것이다.
+
+# classification_report 이거는 정밀도, 재현율, f1 score을 한 번에 보여주고
+# recall_score, precision_score 이걸 불러와 tp와 fn 등 이런 걸 계산하기 보다는
+# 바로 데이터에 넣어서 사용할 수 있다.
+
+# # =====================================================================
+# # 6. 규제 — 과적합 처방을 옵션 하나로 (Ridge)
+# # =====================================================================
+
+# for a in [0.01, 1, 10, 100]:
+#     r = make_pipeline(StandardScaler(), Ridge(alpha=a)).fit(X_train, y_train)
+    
+# 여기서는 릿지를 적용해서 과적합을 방지했다.
+# 알파에 0.01, 1, 10, 100을 순차적으로 입력하여 가장 좋은 결과를 내는 것을 선택하면 된다.
+
+# for 이름, 모델 in [
+#     ("규제 없음(LinearRegression)", LinearRegression()),
+#     ("Ridge(alpha=10)", Ridge(alpha=10)),
+# ]:
+#     poly = make_pipeline(
+#         StandardScaler(), PolynomialFeatures(4), StandardScaler(), 모델
+#     ).fit(X_train, y_train)
+
+# 이 코드는 특징이 많을 때 과적합을 확인해보는 코드이다.
+# PolynomialFeatures(4)는 현재 4개의 특징을 부풀리는 코드로, 4를 넣으면 70개로 특징이 늘어난다.
+
+# 이 경우에 바로 학습을 하면 세세한 특징을 외우기 때문에 train성능이 굉장히
+# 높게 나오지만, 실제 test 성능은 낮게 나오는 것을 확인할 수 있다.
+
+# 하지만 Ridge를 사용하면 train의 효율이 조금 낮더라도 test의 결정계수를 끌어올릴 수 있게 된다.
+
+# # =====================================================================
+# # 7. 손잡이(alpha 등) 고르기 — test 를 훔쳐보지 않고: 교차검증
+# # =====================================================================
+
+# 사실 6의 챕터는 문제가 있다. 가장 성능이 좋은 알파를 찾기 위해 계속해서 test
+# 데이터 셋으로 확인해봤다는 점이다. 하지만 실제로는 그렇게 진행할 수 없다.
+# 따라서 이를 해결하기 위해서 k-fold기법을 사용했다.
+
+# 이 교차검증 기법은 train(140행)을 n개로 먼저 나누고
+# 1개는 검증용으로 쓸 수 있게 놔두고 n-1개로 학습을 진행한다.
+# 그리고 학습이 끝났다면 1개로 검증하고 성능을 측정한다.
+# 이 과정을 n번만큼 반복하는 것이 k-fold 기법이다.
+
+# 여기서는 이 기법을 활용하여 실제 test 데이터 셋을 컨닝하지 않고 대략적인 성능을
+# 확인해보는 챕터이다.
+
+# cv = cross_val_score(
+#     make_pipeline(StandardScaler(), LinearRegression()), X_train, y_train, cv=5
+# )
+
+# 먼저 cross_val_score()에 make_pipeline을 만들고, cv = 5로 설정한다.
+# 여기서 cv는 데이터를 나누는 개수와 훈련반복 횟수를 의미한다.
+
+#  [0.723 0.848 0.846 0.71  0.824] → 평균 0.7901
+
+#  결과는 위와 같이 나왔다.
+
+# grid = GridSearchCV(
+#     make_pipeline(StandardScaler(), Ridge()),
+#     {"ridge__alpha": [0.01, 0.1, 1, 10, 100]},
+#     cv=5,
+# )
+
+# 위의 GridSearchCV 또한 k-fold 기법인데 cross_val_score와는 어떤 차이가 있는 걸까?
+# 지금 cross_val_score는 하나만 확인해준다면 GridSearchCV는 내가 설정한 하이퍼 파라미터
+# ridge__alpha의 5개의 값 중에서 가장 좋은 값을 찾아준다.
+# grid.best_params_ 이런 식으로 접근하여 찾을 수 있고 grid.best_score_ 이걸 통해
+# R**2 평균을 알 수 있다.
+
+# 이제 다 완성되어 rid.score(X_test, y_test)를 사용하여 테스트를 한 번만 진행해
+# 진짜 모델의 실력을 확인하는 것이다.
+
+# 05_파이토치_같은일을_루프로
+
+여기서 한 내용을 간단히 요약해보자면
+
+파이토치가 사이킷런과 다른 점
+사이킷런은 학습 과정을 안 보여주고 알아서 끝내지만,
+파이토치는 01에서 손으로 짰던 경사하강 루프의 뼈대
+(반복문, 기울기 구하기, 한 걸음 이동)를 그대로 유지하면서, 
+그 중 "기울기 계산"(수치미분→자동미분)과 "한 걸음 이동"(직접 수식→옵티마이저)만 
+편한 부품으로 바꿔치기한 것이다.
+
+01~03을 파이토치로 다룬 방식
+새로운 개념을 도입한 게 아니라, 01의 루프 구조를 그대로 재사용하면서, 
+01은 회귀(MSELoss), 02는 입력을 여러 개로(nn.Linear(4,1)), 
+03은 손실만 분류용(BCEWithLogitsLoss)으로 바꿔 끼운 것이다. 
+나누기·표준화·채점처럼 파이토치가 굳이 다시 만들 필요 없는 부분은 
+사이킷런을 그대로 빌려다 씀으로써, "파이토치는 학습 루프 전용 도구"라는 
+역할 분담을 보여준다.
+
 
 x = df["공기온도"].values
 y = df["공정온도"].values
-X1 = x.reshape(-1, 1)
-print("[1] x.shape", x.shape, "→ X1.shape", X1.shape)
+x_t = torch.tensor(x, dtype=torch.float32)
 
-내용 자체는 달라진 부분이 없다.
-지금까지 순수 파이썬으로 모델을 구현했다면 지금부터는 라이브러리를 통해
-모델을 구현하는 방법이다.
+이건 파이토치의 배열선언 같은 것이다. dtype=torch.float32는 float64와
+자릿수가 차이가 난다. 64는 15자리이고, 32는 7자리이다.
 
-먼저 여기서도 똑같이 열의 value값들을 가져오는데 여기서는 특이하게도
-reshape를 통해 모양을 2차원 배열로 변환했다.
+왜 파이토치는 float32를 기본으로 쓰나
+딥러닝(신경망)은 파라미터(w, b)가 수백만~수십억 개가 될 수 있다.
+ float64를 쓰면 메모리를 2배 먹고, 계산 속도도 느려짐
+딥러닝 모델은 애초에 약간의 오차(소수점 15자리 vs 7자리)가 결과에 
+큰 영향을 안 줌 (워낙 많은 숫자를 근사적으로 다루는 특성)
+ → 그래서 속도·메모리를 아끼기 위해서이다.
 
-따로 이유가 있는 건 아니고 사이킷런의 모델은 1차원을 받지 못하기 때문에
-2차원으로 변경한 것이다.
-from sklearn.linear_model import LinearRegression
-model = LinearRegression()  # ① 만들기 — 빈 선형회귀 모델. 아직 아무것도 모름
-model.fit(X1, y)
+m, s = (
+    x_t.mean(),
+    x_t.std(unbiased=False),
+)
+# 표준화 (unbiased=False = numpy와 같은 방식의 표준편차. 안 붙이면 살짝 다른 값)
+z_t = (x_t - m) / s
 
-빈 선형회귀 모델인 LinearRegression를 만들어주고 .fit()으로 경사하강을 바로 진행한다
-그러면 X1과 y에 대한 w와 b가 바로 출력된다.
+여기서는 파이토치에 값을 사용하기 전 표준화를 진행하는 것이다.
+지금 보면 unbiased를 False로 두고 std를 구하는데 그 이유로는
+넘파이는 std를 구할 때 n으로 나눈 값을 사용하고 파이토치는 n-1로 나눈 값을
+사용하기 때문이다.
 
-또한 model.score(X1, y)를 통해 결정계수도 바로 구할 수 있다.
+근데 그렇다면 왜 굳이 unbiased=False로 두고 사용했을까?
+사실 지금은 행이 대략 200개 정도로 n으로 나누나 n-1으로 나누나 값의 차이는
+굉장히 작게 나온다. 하지만 지금 이 파이토치로 하는 과정은
+앞 전의 내용들은 그대로 답습하면서 파이토치를 사용하는게 목적이기 때문이다.
+즉, 앞의 결과를 그대로 파이토치로 재현을 위해 사용한 것이다.
 
+w = torch.tensor(0.0, requires_grad=True)
+# requires_grad=True  = "이 값은 손잡이다. 기울기를 추적해라"
+b = torch.tensor(0.0, requires_grad=True)
+
+손실 = ((y_t - (w * z_t + b)) ** 2).mean()
+# 01 의 MSE 그래도. 이 계산이 '기록'됩니다
+손실.backward()  
+# <- 미분! 이 한 줄이 01의 기울기_밟아보기(). 
+# 결과는 w.grad, b.grad에 담김
+
+이 내용은 파이토치를 통해 기울기를 기록 및 추적하는 역할이다.
+requires_grad를 따로 명시적으로 True라고 설정해야 기록하며, 텐서에 값을
+0.0만 있을 경우 따로 추적하지 않는다.
+
+또한 requires_grad=True 사용할 경우 값을 0.0으로 설정해야
+float형으로 인식하여 제대로 된 값을 추적할 수 있다.
+왜냐하면 파이토치는 미분이라는 연산 자체가 실수의 개념이기 때문.
+
+
+손실 = ((y_t - (w * z_t + b)) ** 2).mean()
+# 01 의 MSE 그래도. 이 계산이 '기록'됩니다
+손실.backward()  # <- 미분! 이 한 줄이 01의 기울기_밟아보기(). 결과는 w.grad, b.grad에 담김
+print(
+    "\n[2] autograd 가 구한 기울기: w 방향",
+    round(w.grad.item(), 3),
+    "/ b 방향",
+    round(b.grad.item(), 3),
+)
+
+위의 내용은 손실(mse)의 값을 구하는 거고, backward를 손실에 사용하는 것으로
+w와 b의 해당 손실값(스칼라)에 대한 grad를 구할 수 있다.
+당연히 앞에서 tensor에 requires_grad를 사용했기 때문에 추적가능한 것이다.
+그리고 이 grad값을 뽑아내려면 w.grad.item() 을 해야한다. item을 붙이는 이유는
+w의 기울기는 현재 텐서형이기 때문에 item을 붙여야만 뽑아낼 수 있으며
+주의할 점이 하나 있는데 여기서는 지금 w가 값이 하나라서 item으로 뽑아낼 수 있지만,
+앞전의 내용처럼 w의 값이 4개라면 item으로 꺼낼 수 없고 넘파이 형식으로 변경해서
+뽑아내야 한다.
+
+h = 1e-4
+z64, y64 = z_t.numpy().astype(np.float64), y_t.numpy().astype(np.float64)
+L = lambda wv, bv: np.mean((y64 - (wv * z64 + bv)) ** 2)
+# lambda = 이름 없는 한 줄 함수. L(w, b) = 손실
+
+print(
+    "    밟아보기로 잰 기울기:      w 방향",
+    round((L(h, 0) - L(-h, 0)) / (2 * h), 3),
+    "/ b 방향",
+    round((L(0, h) - L(0, -h)) / (2 * h), 3),
+    "← 같다",
+)
+
+이 내용은 지금 표준화된 값을 넘파이 형식으로 변경하여 정말 동일한지 확인 하는 과정이다.
+결과를 보면 알 수 있듯이 파이토치로 사용하여 구한 결과와
+동일한 결과가 나오는 것을 확인할 수 있다.
+
+
+Z = z_t.reshape(
+    -1, 1
+)  # nn.Linear 는 (설비 수, 센서 수) 세로 표를 받습니다 (사이킷런 규칙 1 과 같음)
+Y = y_t.reshape(
+    -1, 1
+)  # 정답도 (설비 수, 1) 로 맞춥니다. 안 맞추면 경고만 뜨고 엉뚱한 손실이 조용히 계산됩니다
+
+torch.manual_seed(0)
+model = torch.nn.Linear(1, 1)  # 입력 개(공기온도) -> 출력 1개(공정온도). w 1개 + b 1개
+loss_fn = torch.nn.MSELoss()
+opt = torch.optim.SGD(model.parameters(), lr=0.1)
+# model.parameters() =  이 모델의 손잡이들(w, b). "얘네를 갱신해라"
+
+print("\n[3] 학습 루프 — 이 네 줄이 01 의 '한 걸음'")
+for epoch in range(300):  # 01 과 같은 300 에폭
+    opt.zero_grad()  # 1 기울기 비우기(누적 방지)
+    loss = loss_fn(model(Z), Y)  # 2 예측 -> 손실 (model(Z) = wz + b를 200대에 대해)
+    loss.backward()  # 3 기울기 자동 계산 (01의 밟아보기)
+    opt.step()  # 4 한 걸음 (01 의 w = w - lr 기울기)
+    if epoch in (0, 10, 30, 100, 299):
+        print(f"    epoch {epoch:3d}  손실 {loss.item():.4f}")
+# 95900 -> 1106 -> 1.04 -> 0.892 -> 0.892. 01 과 같은 모양으로 내려와 같은 바닥(0.892)에 멈춥니다.
+# 이 네줄(zero_grad -> loss -> backward -> step)은 파이토치 코드 어디서나 똑같이 나옵니다. 외우세요.
+
+# 결과를 원래 눈금으로 되돌려 01 04 와 대조
+w_z, b_z = (
+    model.weight.item(),
+    model.bias.item(),
+    # 학습된 손잡이. 사이킷런의 coef_, intercept_ 에 해당
+)
+print(
+    f"    원래 눈금: 공정온도 ≈ {w_z / s.item():.4f} × 공기온도 + {b_z - w_z * m.item() / s.item():.4f}"
+)
+print(
+    "    01 (손) / 04 (사이킷런): 0.9840 × 공기온도 + 14.7799  ← 같다 (끝자리 0.0002 차이는 float32 탓)"
+)
+
+위의 내용은 파이토치로 최적의 w와 b의 값을 구하는 과정을 압축해서 보여준 것이다.
+model을 선언해서 1,1 로 놓으면 입력과 출력이 각 1개씩이라는 의미이고
+loss_fn은 파이토치의 mse를 구하는 것이다.
+opt에는 지금 model의 파라미터를 넣는데 여기서는 w와 b가 된다. 또한 lr을 0.1로 설정했다.
+
+이제 for문을 통해 경사하강을 진행한다.
+먼저 opt가 관리하는 기울기를 비워준다. 이유로는 backward를 사용하게 되면 mse의 값을 기준으로
+w와 b의 값을 구해주는데 이때 구해준 값이 누적되는 성질이 있다.
+따라서 zero_grad()를 통해 반드시 기울기를 계속해서 초기화 해줘야 한다.
+그리고 mse를 구하는 loss_fn은 인자가 2개를 받고 있는데, 처음 파라미터는 예측값이고,
+두 번째 파라미터는 정답이다. 이 차이를 이용해 loss를 구하고 그 상태에서
+backward를 사용하여 w와 b를 구한다.
+그리고 opt.step()을 통해 가중치를 갱신한다.
+
+짧게 축약하여 위의 반복문은 01에서 했던 파이썬으로 여러 함수를 선언하고 이것저것
+했지만 아주 짧은 코드로 대체가 가능함을 보여준 파트이다.
+
+
+# =====================================================================
+# 4. 다변수 + train/test — 02 를 파이토치로 (나누기·표준화는 사이킷런을 빌려 씀)
+# =====================================================================
+# 파이토치와 사이킷런은 '같이' 씁니다. 나누고 표준화하고 채점하는 건 사이킷런이 편하고,
+# 학습 루프만 파이토치로. numpy <-> 텐서 변환 한 줄이 둘을 잇습니다. 실무 코드도 이 조합이 보통.
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 X = df[특징이름].values
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.3, random_state=42
-)
+)  # 04 같은 분할
 
-다음 내용은 02에서 진행했던 train과 test를 나누는 걸 한 번에 진행했다.
-위의 train_test_split()으로 학습과 시험을 7:3의 비율로 나누었고, 같은 결과를
-보장하기 위해 시드를 고정한 것이다.
+scaler = StandardScaler().fit(X_train)
+to_t = lambda a: torch.tensor(np.asarray(a), dtype=torch.float32)
+# numpy -> float32 텐서 도우미. 매번 길게 안 쓰려고
 
-scaler = StandardScaler()  # 표준화 도구
-scaler.fit(X_train)  # 학습용의 평균·표준편차를 '외운다'  (02 의 mu, sd 계산)
-Z_train = scaler.transform(X_train)  # 외운 값으로 변환  (02 의 (X − mu) / sd)
-Z_test = scaler.transform(X_test)
+Ztr, Zte = to_t(scaler.transform(X_train)), to_t(scaler.transform(X_test))
+Ytr, Yte = to_t(y_train).reshape(-1, 1), to_t(y_test).reshape(-1, 1)
 
-StandardScaler는 표준화를 시켜주는 도구이다.
-.fit() 을 통해 어떤 데이터에 대한 평균과 표준편차를 한 줄로 계산해주는 기능이며
-.transform을 통해 값을 표준화 시켜준다.
-여기서 총 4줄로 02에서 진행했던 평균과 표준편차를 구하고 표준화를 시켜주는 코드를
-압축해냈다.
+torch.manual_seed(0)
+model4 = torch.nn.Linear(4, 1)
+# 입력 4개(센서 4개) -> 출력 1개. 숫자 하나만 바뀜. w 4개 + b 1개
 
-reg = LinearRegression().fit(Z_train, y_train) 
-
-여기서 다시 표준화한 데이터로 reg를 학습한다.
-
-04에서 2챕터와 1챕터의 차이는 표준화된 데이터를 넣었는지 안 넣었는지 뿐만 아니라
-챕터 1은 w가 1개이고 챕터 2는 w가 4개이다.
-
-그렇기 때문에 밑의 결과인 결정계수가 차이가 난다.
-
-실행결과
-train R² 0.8155 / test R² 0.7425
-
-# =====================================================================
-# 3. Pipeline — "표준화는 학습용으로만" 을 도구가 대신 지키게
-# =====================================================================
-
-from sklearn.pipeline import make_pipeline
-
-pipe = make_pipeline(
-    StandardScaler(), LinearRegression()
-)  # 왼쪽부터 순서대로: 표준화 → 선형회귀
-pipe.fit(X_train, y_train) 
-
-3번째 챕터는 파이프 라인을 구축하는 것이다.
-사이킷런에서 make_pipeline을 불러와 표준화와 선형회귀를 담고 .fit(데이터)를 하면
-순서대로 표준화된 데이터를 선형회귀에 자동으로 넣어주게 된다.
-
-이 공정을 쓰면 위에서 했던 직접 평균과 표준편차를 학습시키는 등 약간의 번거로움이 있었는데
-코드를 압축해주고 사람이 할 수 있는 실수를 최대한 줄여준다는 장점이 있다.
-
-또한 .fit()을 한 번만 사용하기 때문에 코드의 가독성 또한 올라가는 장점이 있다.
-
-pipe.predict([[300, 1500, 40, 100]])[0]
-
-이건 각 공기온도, 회전수, 토크, 공구마고가 저 값일 때의 공정온도를 예측하는 것이다.
-
-새 설비 [공기 300, 회전 1500, 토크 40, 마모 100] → 공정온도 310.03
-
-실행결과는 이렇게 나오며 지금 predict 뒤에 [0]을 붙였는데 이 이유로는
-predict는 기본적으로 배열을 반환한다.
-지금은 행이 1개지만, 입력값으로 여러 개의 행을 넣으면 행만큼의 배열이 나오게 된다.
-만약 [0]을 쓰지 않는다면 round로 배열의 소숫점을 반올림하는 상황이 나오기 때문에 그것을
-방지하기 위해 [0]으로 하나의 값만 불러와 반올림 하는 것이다.
+opt = torch.optim.SGD(model4.parameters(), lr=0.1)
+for epoch in range(500):
+    opt.zero_grad()
+    loss = loss_fn(model4(Ztr), Ytr)
+    loss.backward()
+    opt.step()  # 네 줄을 세미콜론으로 한 줄에
 
 
-from sklearn.neighbors import KNeighborsRegressor
-
-이웃 = lambda: make_pipeline(StandardScaler(), KNeighborsRegressor(n_neighbors=1))
-
-위의 내용은 우선 지금까지 했던 선형회귀 모델이 아닌 knn 모델이다.
-knn은 입력값이 들어오면 그 입력값과 가장 비슷한 입력값의 출력값을 뱉은 모델이다.
-
-그래서 지금은 데이터를 중복제거 하지않으면 어떻게 될까?를 중복과 가장 밀접한 관련이 있는
-knn으로 보여주는 사례이고 현재 데이터는 중복이 없기 때문에 중복을 구태여 생성해서
-극단적인 예시를 보여주는 사례이다.
-
-이웃 = lambda: make_pipeline(StandardScaler(), KNeighborsRegressor(n_neighbors=1))
-
-이건 람다를 사용했는데 def로 사용해도 무방하다.
-재사용하기 위해 람다를 사용한 것이며 코드의 간결성을 위해서 적은 것이다.
-
-X중복 = np.vstack([X, X])  # 일부러 모든 행을 두 번씩 (중복 제거를 깜빡한 상황)
-y중복 = np.concatenate([y, y])
-
-지금 x와 y의 중복을 만들기 위해 사용한 메서드가 다른 것을 확인할 수 있다.
-x의 경우 vstack을 사용했는데 이건 가로로 늘리는게 아닌 행을 추가하는 방식이다.
-그래서 총 (200,4)의 형식이 (400,4)가 되고
-y의 경우 딱히 차원이 없는, 굳이 따지자면 1차원 배열이라 concatenate를 사용해 그냥 붙였다.
+def R2(y, yhat):  # 02의 알제곱 을 텐서용
+    return (1 - ((y - yhat) ** 2).sum() / ((y - y.mean()) ** 2).sum()).item()
 
 
-d_tr, d_te, dy_tr, dy_te = train_test_split(
-    X중복, y중복, test_size=0.3, random_state=42
-)
+# with torch.no_grad(): 이 블록 안에선 기록(autograd)을 끕니다. 예측만 할 땐 관례
+with torch.no_grad():
+    print(
+        "\n[4] 다변수 회귀 — train R²",
+        round(R2(Ytr, model4(Ztr)), 4),
+        "/ test R²",
+        round(R2(Yte, model4(Zte)), 4),
+    )
+    print(
+        "    표준화 가중치:",
+        {k: round(v, 3) for k, v in zip(특징이름, model4.weight.squeeze(0).tolist())},
+    )
+    # weight 는 (1, 4) 표 모양. .squeeze(0) = 크기 1인 겉껍질을 벗겨 (4,)로. .tolist() = 파이썬 리스트로
 
-중복으로 넣은 값을 위에서 했던 것처럼 train_test_split을 사용해 7대3으로 나눠주고
-시드를 똑같이 고정한다.
+print("    04 사이킷런: train 0.8155 / test 0.7425, 공기온도 1.986 ← 같은 자리")
+# 사이킷런 공식으로, 파이토치는 500 걸음 걸어서. 같은 바닥에 도착. 과적합 판단도 04 같습니다.
 
-이웃().fit(d_tr, dy_tr).score(d_te, dy_te)
-이웃().fit(X_train, y_train).score(X_test, y_test)
 
-    중복 있음 test R² 0.8177   <- 훌륭해 보인다
-    중복 없음 test R² 0.1864   <- 이게 이 모델의 진짜 실력
+위의 내용의 핵심은 02를 파이토치로 변환한 것이다.
+하지만 여기서도 사이킷런을 사용한다. 이유로는 파이토치는 경사하강을 계산하는 도구라
+사이킷런처럼 나누고 표준화하는 기능이 따로 존재하지 않는다.
+그렇기 때문에 필연적으로 같이 사용하는 것이다.
 
-그 상태에서 결과를 확인해보면 knn은 중복된 값이 있으면 훨씬 성능이 뻥튀기되었고
-중복이 없는 상태에서의 결정계수를 확인해보면 0.19 정도의 값이 나오는게 확인된다.
+먼저 04에서 했던 것처럼 그대로 사이킷런을 통해 데이터를 7대3으로 분할한다.
+그리고 분할한 데이터에서 X_train을 기준으로 표준화도구를 만들고
+파이토치를 사용하기 위해 람다로 넘파이를 float32로 변환하는 간이 함수를 만들어준다.
 
-이처럼 데이터에 중복이 얼마나 모델에 영향을 크게 미치는지 확인해봤다.
+그리고 분할한 데이터를 전부 x_train의 평균과 표준편차에 맞춰 표준화를 하고
+위에서 만들어둔 람다를 통해 데이터를 float32로 변환시켜준다.
 
-# =====================================================================
-# 4. 분류 — 03 의 로지스틱 회귀를 도구로
-# =====================================================================
+그리고 여기서 입력을 4개 출력은 1개인 리니어모델을 만들고
+똑같이 모델의 파라미터를 opt에 입력한다.
+그리고 그 밑의 과정은 위에서 했던 것과 똑같이 for문을 통해 최적의 w와 b값을 찾는다.
 
-이번 챕터는 로지스틱 회귀를 사이킷런으로 구현한 것이다.
+with torch.no_grad():
+이걸 사용해서 기록을 먼저 끄고 train과 test의 결정계수 값을 구하고
+구한 가중치의 값을 model4.weight.squeeze(0).tolist() 값으로 파이썬 리스트 구조로 뽑아낸다.
 
-yc = df["고장여부"].values  # 분류 정답: 0/1
+yc = df["고장여부"].values
 Xc_train, Xc_test, yc_train, yc_test = train_test_split(
     X, yc, test_size=0.3, random_state=3, stratify=yc
-)
+)  # 04 와 같은 분할
 
-이전 03을 정리할 때는 데이터를 나누기 위해 코드를 길게 적었지만,
-지금은 2줄로 한 번에 정리되었다.
+scaler_c = StandardScaler().fit(Xc_train)
+Zc_tr, Zc_te = to_t(scaler_c.transform(Xc_train)), to_t(scaler_c.transform(Xc_test))
+Yc_tr = to_t(yc_train).reshape(-1, 1)
+# 0/1  정답도 float32 로! (정수면 손실 함수가 에러)
 
-지금 코드를 간단히 보면 먼저 yc에 "고장여부"의 value를 넣는다.
-이것은 0과 1로 이루어져 있으며 1일경우 고장 0일경우 정상이다.
+torch.manual_seed(0)
+clf = torch.nn.Linear(4, 1)
+loss_c = torch.nn.BCEWithLogitsLoss()  # <- 회귀와 다른 유일한 줄
+opt = torch.optim.SGD(clf.parameters(), lr=0.5)  # 03과 같은 lr, 같은 걸음 수
+for epoch in range(2000):
+    opt.zero_grad()
+    loss = loss_c(clf(Zc_tr), Yc_tr)
+    loss.backward()
+    opt.step()
 
-그리고 위와 똑같이 train_test_split으로 데이터를 나누는데 7대3, 시드는 3으로 고정하고
-stratify가 처음 나왔다.
+with torch.no_grad():
+    p = torch.sigmoid(clf(Zc_te)).squeeze(1).numpy()
+    # 직선값 -> sigmoid -> 고장확률. 04 의 predict_proba[:, 1]을 직접 만든 것
 
-stratify 이 파라미터는 데이터(yc)를 똑같은 비율로 나눠준다는 의미이다.
+print("\n[5] 분류 — 시험용 고장 확률 상위 5:", np.sort(p)[::-1][:5].round(3))
+from sklearn.metrics import (
+    precision_score,
+    recall_score,
+)  # 채점은 사이킷런 함수를 그대로 빌려 씀
 
-[4] 분류 — 학습용 고장 6 대 / 시험용 고장 2 대
+for th in [0.5, 0.2]:
+    판정 = (p >= th).astype(int)
+    print(
+        f"    임계값 {th}: 재현율 {recall_score(yc_test, 판정, zero_division=0):.2f}  정밀도 {precision_score(yc_test, 판정, zero_division=0):.2f}"
+    )
 
-결과는 위처럼 학습용에는 6대, 시험용에는 2대가 들어갔다.
+이번 파트는 03에서 numpy로 분류모델을 직접 구현하고 채점한 것을
+사이킷런과 파이토치를 사용해서 간단하게 구현한 것이다.
+
+먼저 데이터 나누는 건 split 라이브러리를 이용해서 7:3으로 나눴는데 이때
+yc는 200개의 행의 고장여부이다. 각각 고장인지 아닌지를 판별하는데
+비율은 192:8인데 작은 양이다. 그리고 현재 고장 설비는 8대만 있기 때문에
+test or train 데이터에만 고장 설비가 있을 수 있게 된다. 이는 곧 훈련의 효율 감소와
+테스트 결과의 신뢰성 또한 낮아지게 된다.
+하지만 stratify=yc 이걸 통해서 위의 문제를 해결할 수 있다.
+startify는 현재 데이터에서 192:8을 train과 test에도 똑같은 비율로 나눠주는 기능이기 때문이다.
+
+그리고 다시 Scaler를 통해 xc_train 데이터의 평균과 표준편차를 이용해
+전체 데이터를 표준화 시켜준다.
+
+그리고 위에서 했던 것과 마찬가지로 입력 4개, 출력 1개인 모델을 선언하고
+loss_c = torch.nn.BCEWithLogitsLoss()를 선언하는데
+이건 03에서 했던, 결과를 분류하기 위해 먼저 0~1 사이의 확률(시그모이드)로 먼저 바꾸고
+값들을 전부 곱해야 하므로 자연로그를 씌우고, 자연로그를 씌우면 1이하의 값은 무조건 음수가 나오니
+음수를 해결하기 위해 다시 -를 붙이는 과정의 코드가
+지금 단 한 번의 선언으로 해결되었다.
+
+그리고 opt를 선언하고 위에서 했던 것처럼 기울기를 비워주면서 최적의 가중치를 찾아낸다.
+with torch.no_grad(): 이걸 선언함으로써 기울기 추적을 꺼, 메모리 최적화를 통한 속도를 향상시킨다.
+그리고 지금 p에 sigmoid를 쓰는데 Zc_te는 분류해놓은 데이터를 표준화만 시켰기 때문에
+test를 위해 sigmoid로 값을 또 변환시켜준다.
+
+그리고 정밀도와 재현율을 확인하는데 임계값을 0.5와 0.2 두 개로 확인해 본다.
+결과는 03과 마찬가지로 똑같이 나온다.
 
 
-clf = make_pipeline(
-    StandardScaler(), LogisticRegression(max_iter=1000)
-)  # max_iter = 최대 걸음 수. 기본 100 이 모자라면 경고가 떠서 1000 으로
-clf.fit(Xc_train, yc_train)  # 03 의 sigmoid + 로그손실 + 경사하강 2000 바퀴가 이 한 줄
+
+from torch.utils.data import DataLoader, TensorDataset
+
+#
+# 습관 하나 추가: 정답(y)도 표준화합니다. 공정온도가 310 근처라 0에서 출발하면 310 까지 가는 데 걸음이 많이 들고,
+# 특히 Adam은 한 걸음이 lr 크기(0.01)로 제한돼 310 까지 3만 걸음이 필요
+# R2는 눈금을 바꿔도 같은 값이라 채점엔 영향 없음)
+
+y_m, y_s = Ytr.mean(), Ytr.std()
+Ytr_s, Yte_s = (Ytr - y_m) / y_s, (Yte - y_m) / y_s
+
+loader = DataLoader(TensorDataset(Ztr, Ytr_s), batch_size=16, shuffle=True)
+# 16대씩, 매 에폭 새로 섞어서
+print("\n[6] 미니배치 — 한 에폭에", len(loader), "걸음 (140대 ÷ 16)")
+
+torch.manual_seed(0)
+model_mb = torch.nn.Linear(4, 1)
+opt = torch.optim.Adam(model_mb.parameters(), lr=0.01)
+# Adam: 손잡이마다 보폭을 알아서 조절. 실무에서 가장 흔한 선택. lr은 0.001~0.01이 관례
+for epoch in range(100):
+    for (zb, yb,) in loader:
+        # <- 미니배치 루프. zb = 이번 16대의 센서, yb = 그 정답. 안쪽 네 줄은 그대로
+        opt.zero_grad()
+        loss = loss_fn(model_mb(zb), yb)
+        loss.backward()
+        opt.step()
+with torch.no_grad():
+    print(
+        "    미니배치 + Adam — test R²:",
+        round(R2(Yte_s, model_mb(Zte)), 4),
+        "(같은 바닥에 도착)",
+    )
 
 
-위의 내용은 clf에 로지스틱회귀 파이프라인을 만든 것이다.
-max_iter는 는 최대 학습 횟수이다. 여기서 최대라는 것은 1000번 학습할 수 있지만,
-손실이 유의미하게 줄어들지 않는다면 1000번이 되기전에 중단할 수도 있기 때문에 max을 붙인 것이다.
 
-이제 다시 .fit()을 사용하여 train데이터를 넣고 학습한다.
+이번 챕터는 미니배치이다.
+지금까지의 데이터는 사실 굉장히 작은 데이터이다. 140개의 행으로만 학습을 진행했는데
+실제로는 데이터가 몇백반개씩 넘어간다. 그럼 이를 실무에서는 어떻게 해결했는지 확인해보는
+절차를 가지는게 이번 챕터에서 하는 일이다.
 
+먼저 정답 y의 값을 표준화 시켜준다.
+표준화 시켜주는 이유로는 여기서는 모델로 아담을 사용하는데 아담은 lr의 크기가
+0.01로 제한되어 있다. 그렇기 때문에 여기서는 표준화를 통해 단위를 축소시켜
+학습횟수를 줄이는 방법을 채택했다.
+
+여기서의 예를 조금 더 자세히 설명하자면 지금 우리가 예측해야 하는 것은
+공정온도이다. 공정온도 310이라는 값을 예측해야 하는데 지금까지 해왔던 방식으로 가중치를
+구했는데 보정값이 300까지 도달해야 한다. 하지만 이때 학습률이 0.01이라면 b가 0부터 출발하면
+한참을 걸려도 도달이 어렵다. 이는 곧 자원의 낭비를 의미하기 때문에
+y를 표준화시켰다.
+
+loader = DataLoader(TensorDataset(Ztr, Ytr_s), batch_size=16, shuffle=True)
+
+그리고 여기서 DataLoader를 사용해 데이터를 나누는데 이때 배치사이즈는 16으로 하여
+총 9조각이 나오게 하고 셔플은 True로 한다.
+여기서 셔플을 트루로 하는 이유는, 만약 셔플 트루가 없다고 가정해보자.
+그렇다면 순서가 똑같은 16개의 데이터가 계속 들어가게 되고 이는 순서조차 외워 모델의
+편향이 굉장히 커지게 된다. 하지만 셔플 True를 함으로써 편향을 줄이고 좀 더
+안정적으로 수렴할 수 있게끔 한다.
+
+그리고 다음은 위에서 한 것과 비슷하게 입력 4, 출력 1인 모델을 선언하고
+opt를 아담으로 설정하여 학습을 진행한다.
+그리고 여기서는 배치를 사용했기 때문에 2중포문을 사용하여 학습을 진행하고
+최적화된 기울기를 구한다.
+
+나온 결과를 확인하면 위에서 했던 것과 똑같은 결과가 나온다.
